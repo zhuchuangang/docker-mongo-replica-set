@@ -1,0 +1,38 @@
+primary:
+  hostname: primary
+  image: mongo:3.2.10
+  ports:
+    - 27017:27017
+  volumes:
+    - /Users/zcg/data/mongodb/replset/rs1:/data/db
+  command: mongod --dbpath /data/db --replSet rs --oplogSize 128
+secondary:
+  image: mongo:3.2.10
+  ports:
+    - 27018:27017
+  volumes:
+    - /Users/zcg/data/mongodb/replset/rs2:/data/db
+  command: mongod --dbpath /data/db --replSet rs --oplogSize 128
+  links:
+    - primary
+arbiter:
+  image: mongo:3.2.10
+  ports:
+    - 27019:27017
+  command: mongod --dbpath /data/db --replSet rs --smallfiles --oplogSize 128
+  links:
+    - primary
+startup:
+  image: szss/mongo-startup
+  environment:
+    - RS_NAME=rs
+    - MONGODB_PRIMARY=192.168.0.100
+    - MONGODB_SECONDARY=192.168.0.100
+    - MONGODB_ARBITER=192.168.0.100
+    - MONGODB_PRIMARY_PORT=27017
+    - MONGODB_SECONDARY_PORT=27018
+    - MONGODB_ARBITER_PORT=27019
+  links:
+    - primary
+    - secondary
+    - arbiter
